@@ -40,65 +40,78 @@ export default function PromptStepPage() {
   const [workflowType, setWorkflowType] = useState<string>("");
 
   const loadWorkflow = useCallback(async (): Promise<void> => {
-    const { data: authData } = await supabase.auth.getUser();
-    if (!authData.user) {
-      router.push("/login");
-      return;
-    }
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) {
+        router.push("/login");
+        return;
+      }
 
-    // Fetch workflow
-    const { data: workflowData, error: workflowError } = await supabase
-      .from("workflows")
-      .select("*")
-      .eq("id", workflowId)
-      .single();
+      console.log("Loading workflow:", workflowId);
+      console.log("User:", authData.user.id);
 
-    if (workflowError || !workflowData) {
-      console.error("Error loading workflow:", workflowError);
-      console.log("Workflow ID tried:", workflowId);
-      console.log("User ID:", authData.user.id);
-      // Don't redirect, show error state instead
+      // Fetch workflow
+      const { data: workflowData, error: workflowError } = await supabase
+        .from("workflows")
+        .select("*")
+        .eq("id", workflowId)
+        .single();
+
+      if (workflowError || !workflowData) {
+        console.error("Error loading workflow:", workflowError);
+        console.log("Workflow ID tried:", workflowId);
+        console.log("User ID:", authData.user.id);
+        setLoading(false);
+        return;
+      }
+
+      console.log("Workflow loaded:", workflowData.project_type);
+
+      // Verify ownership
+      if (workflowData.user_id !== authData.user.id) {
+        console.error("Ownership mismatch:", workflowData.user_id, "vs", authData.user.id);
+        setLoading(false);
+        return;
+      }
+
+      setWorkflow(workflowData);
+      setWorkflowType(workflowData.project_type);
+
+      // Get step data
+      const step = getWorkflowStep(workflowData.project_type, stepNumber);
+      console.log("Step data:", step ? "found" : "not found");
+      
+      if (!step) {
+        console.error("Step not found:", workflowData.project_type, stepNumber);
+        setLoading(false);
+        return;
+      }
+      
+      setStepData(step);
+
+      // Process prompt with placeholders
+      const processed = replacePlaceholders(step.prompt, workflowData.answers);
+      setProcessedPrompt(processed);
+
+      // Initialize checkboxes
+      setCheckedItems(new Array(step.testChecklist.length).fill(false));
+
+      // Get user credits
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("credits")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (profileData) {
+        setCredits(profileData.credits);
+      }
+
       setLoading(false);
-      return;
-    }
-
-    // Verify ownership
-    if (workflowData.user_id !== authData.user.id) {
-      console.error("Ownership mismatch:", workflowData.user_id, "vs", authData.user.id);
+    } catch (err) {
+      console.error("Unexpected error:", err);
       setLoading(false);
-      return;
     }
-
-    setWorkflow(workflowData);
-    setWorkflowType(workflowData.project_type);
-
-    // Get step data
-    const step = getWorkflowStep(workflowData.project_type, stepNumber);
-    if (!step) {
-      router.push("/dashboard");
-      return;
-    }
-    setStepData(step);
-
-    // Process prompt with placeholders
-    const processed = replacePlaceholders(step.prompt, workflowData.answers);
-    setProcessedPrompt(processed);
-
-    // Initialize checkboxes
-    setCheckedItems(new Array(step.testChecklist.length).fill(false));
-
-    // Get user credits
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("credits")
-      .eq("id", authData.user.id)
-      .single();
-
-    if (profileData) {
-      setCredits(profileData.credits);
-    }
-
-    setLoading(false);
   }, [workflowId, stepNumber, router]);
 
   useEffect(() => {
