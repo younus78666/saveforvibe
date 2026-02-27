@@ -55,13 +55,17 @@ export default function PromptStepPage() {
 
     if (workflowError || !workflowData) {
       console.error("Error loading workflow:", workflowError);
-      router.push("/dashboard");
+      console.log("Workflow ID tried:", workflowId);
+      console.log("User ID:", authData.user.id);
+      // Don't redirect, show error state instead
+      setLoading(false);
       return;
     }
 
     // Verify ownership
     if (workflowData.user_id !== authData.user.id) {
-      router.push("/dashboard");
+      console.error("Ownership mismatch:", workflowData.user_id, "vs", authData.user.id);
+      setLoading(false);
       return;
     }
 
@@ -188,9 +192,17 @@ export default function PromptStepPage() {
   if (!workflow || !stepData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-white mb-2">Workflow not found</h1>
-          <Link href="/dashboard" className="text-brand hover:text-white">
+        <div className="text-center max-w-md px-4">
+          <h1 className="text-xl font-bold text-white mb-4">Workflow Not Found</h1>
+          <p className="text-gray-400 mb-2">Workflow ID: {workflowId}</p>
+          <p className="text-gray-500 text-sm mb-6">
+            This workflow may not exist or you don&apos;t have permission to view it.
+            Check console for details (F12).
+          </p>
+          <Link 
+            href="/dashboard" 
+            className="bg-brand hover:bg-brand/90 text-white px-6 py-3 rounded-lg transition-colors"
+          >
             Go to Dashboard
           </Link>
         </div>
