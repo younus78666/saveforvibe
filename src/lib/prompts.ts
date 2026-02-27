@@ -870,6 +870,12 @@ This brief is ready for your writer.`,
   ],
 };
 
+// Import additional workflow prompts
+import { additionalPrompts } from "./more-prompts";
+
+// Merge additional prompts into library
+Object.assign(promptsLibrary, additionalPrompts);
+
 // Get all available workflow IDs
 export const getAvailableWorkflowIds = (): string[] => {
   return Object.keys(promptsLibrary);
