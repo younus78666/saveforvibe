@@ -136,7 +136,7 @@ export const getProTips = (workflowId: string, stepNumber: number): string[] => 
       1: ["Double-check your keyword spelling - one typo ruins everything",
           "Choose a keyword with 1000-10000 monthly searches for best ROI"],
       2: ["Look for entities your competitors missed",
-          "Check Google's "People Also Ask" for question ideas"],
+          "Check Google's 'People Also Ask' for question ideas"],
     },
     "micro-niche": {
       1: ["Niche down until uncomfortable - 'best keyboards' is too broad",
