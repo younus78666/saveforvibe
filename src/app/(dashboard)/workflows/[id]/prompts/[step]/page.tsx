@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, Copy, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Copy, Loader2, CheckCircle2, Bookmark, Lightbulb } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getWorkflowById } from "@/lib/workflows";
 import { getWorkflowStep, replacePlaceholders, WorkflowStep } from "@/lib/prompts";
+import { getProTips } from "@/lib/user-features";
 import { clsx } from "clsx";
 
 interface WorkflowData {
@@ -296,10 +297,26 @@ export default function PromptStepPage() {
               </p>
 
               {/* Context Note */}
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 mb-4">
                 <p className="text-amber-400 text-sm">
                   <strong>Tip:</strong> {stepData.contextNote}
                 </p>
+              </div>
+
+              {/* Pro Tips - Why users come back! */}
+              <div className="bg-brand/5 border border-brand/10 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Lightbulb className="w-4 h-4 text-brand" />
+                  <span className="text-brand font-medium text-sm">Pro Tips</span>
+                </div>
+                <ul className="space-y-2">
+                  {getProTips(workflowType, stepNumber).map((tip, index) => (
+                    <li key={index} className="text-gray-400 text-sm flex items-start gap-2">
+                      <span className="text-brand mt-1">•</span>
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
 
@@ -408,27 +425,38 @@ export default function PromptStepPage() {
                     Copy this and paste into {stepData.aiTool}
                   </p>
                 </div>
-                <button
-                  onClick={handleCopy}
-                  className={clsx(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
-                    copied
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-brand/10 text-brand hover:bg-brand/20"
-                  )}
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      Copied! ✓
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4" />
-                      Copy Prompt
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* Save to Library - STICKY FEATURE */}
+                  <button
+                    onClick={() => alert("💎 Pro Feature: Save to your personal library!\n\nUpgrade to Pro ($19/mo) to:\n• Save unlimited prompts\n• Organize by tags\n• Access from any device\n• Export as PDF\n\nThis prompt is customized just for YOUR project - no one else has this exact version!")}
+                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 border border-border text-gray-400 hover:text-white hover:border-brand"
+                  >
+                    <Bookmark className="w-4 h-4" />
+                    Save
+                  </button>
+                  
+                  <button
+                    onClick={handleCopy}
+                    className={clsx(
+                      "px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
+                      copied
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-brand/10 text-brand hover:bg-brand/20"
+                    )}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Copied! ✓
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        Copy Prompt
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {/* Prompt Content */}
@@ -443,6 +471,22 @@ export default function PromptStepPage() {
                   Paste this into {stepData.aiTool} and wait for the response before
                   continuing to the next step.
                 </p>
+
+                {/* Why This is Unique - VALUE PROPOSITION */}
+                <div className="mt-6 bg-surface/50 border border-brand/20 rounded-lg p-4">
+                  <h4 className="text-brand font-medium text-sm mb-2">
+                    ✨ Why This Prompt is Unique
+                  </h4>
+                  <ul className="text-gray-400 text-sm space-y-1">
+                    <li>• <strong>Personalized:</strong> Generated specifically for YOUR project details</li>
+                    <li>• <strong>Context-Locked:</strong> AI stays focused on your exact requirements</li>
+                    <li>• <strong>Tested Framework:</strong> Based on {workflow.total_steps} proven steps</li>
+                    <li>• <strong>Credits Saved:</strong> Get it right the first time, no back-and-forth</li>
+                  </ul>
+                  <p className="mt-3 text-gray-500 text-xs">
+                    💡 <strong>Pro Tip:</strong> Each step builds on the previous. Complete all {workflow.total_steps} steps for a production-ready result.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
